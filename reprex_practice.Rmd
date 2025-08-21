@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
 library(janitor)
+library(dplyr)
 ```
 
 Your job is to identify an error, then make a reproducible example that would help future you or someone else understand how to write the code correctly. In other words, your reprex code will *work* and offer a solution to the error thrown in each of the following examples. 
@@ -33,17 +34,58 @@ Identify what is causing the problem in the code below (there's only one thing).
 
 ```{r}
 # Example 1: 
-mack_creek_lengths <- mack_creek_vertebrates %>% 
+mack_creek_lengths<- mack_creek_vertebrates %>% 
   clean_names() %>% 
   select(year:sampledate) %>% 
   filter(section == "CC") %>% 
-  mutate(across(where(is.character, tolower))) %>% 
+  mutate(across(where(is.character), ~tolower(.))) %>% #PAST ERROR: tolower needs a ~ and a argument
   drop_na(species) %>% 
   group_by(species) %>% 
   summarize(mean_length_cm = mean(length1, na.rm = TRUE),
             sd_length_cm = sd(length1, na.rm = TRUE)) %>% 
   ungroup()
 ```
+
+
+# reprex 1 
+```{r}
+# create a subset 
+reprex1_sub <- mack_creek_vertebrates %>% 
+  clean_names() %>% 
+  select(year:sampledate) %>% 
+  drop_na(species) %>% 
+  group_by(species) %>% 
+  summarize(mean_length_cm = mean(length1, na.rm = TRUE),
+            sd_length_cm = sd(length1, na.rm = TRUE)) %>% 
+  ungroup()
+  
+# datapasta 
+datapasta::df_paste(reprex1_sub)
+  
+  
+# SEND TO THEM
+
+# libraries 
+library(reprex)
+
+# subset of dataframe
+reprex1_sub <- data.frame(
+  stringsAsFactors = FALSE,
+           species = c("DITE", "ONCL", "RHOL"),
+    mean_length_cm = c(57.0159162481919, 83.531329547679, 35.9333333333333),
+      sd_length_cm = c(20.8706475988055, 35.376212710866, 5.20256347070045)
+   )
+
+# CANT FIND THE ERROR HERE 
+reprex1_sub %>% 
+  mutate(across(where(is.character, tolower)))
+
+```
+
+
+
+
+
 
 ### reprex 2
 
@@ -54,11 +96,34 @@ Identify what is causing the problem in the code below (there's only one thing).
 mack_creek_vertebrates %>% 
   clean_names() %>% 
   filter(species == "ONCL") %>% 
-  ggplot(aes(x = length1, y = weight)) +
-         geom_point(aes(shape = 12), color = "purple") +
+  ggplot(aes(x = length1, 
+             y = weight)) +
+         geom_point(color = "purple", #ERROR: these variables should not be in aes() 
+                    shape = 12) +
          theme_minimal() +
          labs(x = "Cutthroat trout length (cm)",
               y = "Weight (g)")
+
 ```
+
+
+
+
+# reprex 2 
+```{r}
+# create a subset 
+lw_sub <- mack_creek_vertebrates %>% 
+  clean_names() %>% 
+  select(length1, weight) %>% 
+  
+  
+
+# data frame 
+datapasta::df_paste(lw_sub)
+
+```
+
+
+
 
 ## End
